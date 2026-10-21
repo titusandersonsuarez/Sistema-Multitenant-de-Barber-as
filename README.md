@@ -12,6 +12,23 @@ Cada barbería se registra y obtiene su propia página de reservas (`/el-parche`
   <img src="docs/screenshots/05-agenda.png" alt="Agenda del día en el panel" width="800">
 </p>
 
+<details>
+<summary><b>Más capturas</b></summary>
+
+<table>
+  <tr>
+    <td><img src="docs/screenshots/02-reserva-escritorio.png" alt="Reserva en escritorio" width="400"><br><sub>Reserva: servicio, barbero, día, hora y datos del cliente.</sub></td>
+    <td><img src="docs/screenshots/06-resumen.png" alt="Resumen de ventas" width="400"><br><sub>Resumen: cobrado, atendidas, no llegaron, por servicio y por barbero.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/08-servicios.png" alt="Servicios" width="400"><br><sub>El dueño edita precios y duración de sus servicios.</sub></td>
+    <td><img src="docs/screenshots/09-swagger.png" alt="Swagger" width="400"><br><sub>API documentada con OpenAPI / Swagger.</sub></td>
+  </tr>
+</table>
+
+Capturas tomadas con la app corriendo en local y la barbería de demostración.
+</details>
+
 ## Funcionalidades
 
 **Para el cliente (sin crear cuenta)**
