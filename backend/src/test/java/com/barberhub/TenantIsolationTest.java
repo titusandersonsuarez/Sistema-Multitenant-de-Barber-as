@@ -110,4 +110,11 @@ class TenantIsolationTest extends ApiTestSupport {
         assertThat(call(PATCH("/api/superadmin/tenants/" + id), token, Map.of("active", false)).status()).isEqualTo(200);
         assertThat(call(GET("/api/public/" + a.slug()), null, null).status()).isEqualTo(404);
     }
+
+    @Test
+    void laDocumentacionDeLaApiEsPublica() throws Exception {
+        Response docs = call(GET("/v3/api-docs"), null, null);
+        assertThat(docs.status()).isEqualTo(200);
+        assertThat(docs.body().get("info").get("title").asText()).isEqualTo("BarberHub API");
+    }
 }

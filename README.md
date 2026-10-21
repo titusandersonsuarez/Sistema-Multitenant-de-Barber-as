@@ -40,6 +40,7 @@ Cada barbería se registra y obtiene su propia página de reservas (`/el-parche`
 | Frontend | Angular 21 (standalone, signals, zoneless), TypeScript |
 | Infra | Docker, docker compose, Nginx, GitHub Actions |
 | Pruebas | JUnit 5, MockMvc, PostgreSQL real embebido (zonky) |
+| Documentación | OpenAPI / Swagger UI (springdoc) |
 
 ## Cómo está resuelto el multitenancy
 
@@ -64,11 +65,12 @@ cd backend
 mvn verify
 ```
 
-17 pruebas de integración contra un PostgreSQL 16 real embebido (no hace falta Docker). Cubren:
+19 pruebas de integración contra un PostgreSQL 16 real embebido (no hace falta Docker). Cubren:
 
 - Aislamiento entre barberías: listados, acceso por id, citas, reservas cruzadas y login.
 - Cálculo de disponibilidad, horarios inválidos, cancelación y concurrencia.
 - Permisos por rol (dueño, barbero y superadmin) y la restricción `EXCLUDE` de la base de datos.
+- Datos de la barbería de demostración y documentación pública de la API.
 
 ## Correr en local
 
@@ -81,6 +83,7 @@ docker compose up --build
 
 - Web: http://localhost:4200
 - API: http://localhost:8080
+- Documentación de la API (Swagger): http://localhost:8080/swagger-ui.html
 
 ### Sin Docker (desarrollo)
 
@@ -106,8 +109,16 @@ npm start                    # http://localhost:4200, con proxy a /api
 | `JWT_EXPIRATION_HOURS` | Duración de la sesión (por defecto 12) |
 | `CORS_ALLOWED_ORIGINS` | Origen del frontend si se sirve en otro dominio |
 | `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` | Activa el acceso de superadministrador |
+| `DEMO_ENABLED`, `DEMO_EMAIL`, `DEMO_PASSWORD` | Crea la barbería de ejemplo `/barberia-demo` con citas de muestra |
+
+## Despliegue
+
+Guía paso a paso para Railway (PostgreSQL + API + web): [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## API principal
+
+Documentación interactiva en `/swagger-ui.html`.
+
 
 | Método | Ruta | Acceso |
 |---|---|---|
@@ -125,7 +136,7 @@ npm start                    # http://localhost:4200, con proxy a /api
 - Recordatorios automáticos por WhatsApp el día anterior a la cita.
 - Pago anticipado opcional (Wompi).
 - Planes de suscripción por barbería.
-- Despliegue en Railway con dominio propio.
+- Pruebas del frontend.
 
 ---
 

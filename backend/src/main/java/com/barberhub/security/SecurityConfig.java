@@ -33,7 +33,8 @@ public class SecurityConfig {
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/public/**", "/api/auth/**", "/actuator/health", "/error").permitAll()
+                        .requestMatchers("/api/public/**", "/api/auth/**", "/actuator/health", "/error",
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/superadmin/**").hasRole("SUPERADMIN")
                         .requestMatchers("/api/admin/**").hasAnyRole("OWNER", "BARBER")
                         .anyRequest().denyAll())

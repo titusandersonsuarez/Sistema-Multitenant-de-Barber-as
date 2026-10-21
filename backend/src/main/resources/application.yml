@@ -35,6 +35,11 @@ barberhub:
     password: ${SUPERADMIN_PASSWORD:}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  demo:
+    # Crea la barbería de ejemplo /barberia-demo al arrancar (para la demo pública).
+    enabled: ${DEMO_ENABLED:false}
+    email: ${DEMO_EMAIL:demo@barberhub.co}
+    password: ${DEMO_PASSWORD:demo12345}
   booking:
     slot-step-minutes: 15
     max-days-ahead: 60

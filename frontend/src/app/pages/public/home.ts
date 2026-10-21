@@ -20,7 +20,7 @@ import { RouterLink } from '@angular/router';
         </p>
         <div class="actions">
           <a class="btn btn-primary" routerLink="/registro">Crear mi barbería gratis</a>
-          <a class="btn" routerLink="/entrar">Ya tengo cuenta</a>
+          <a class="btn" routerLink="/barberia-demo">Ver barbería de ejemplo</a>
         </div>
       </div>
 
@@ -49,6 +49,14 @@ import { RouterLink } from '@angular/router';
       </ol>
     </section>
 
+    <section class="wrap demo">
+      <div class="panel">
+        <h3>Pruébalo sin registrarte</h3>
+        <p>Reserva como cliente en <a routerLink="/barberia-demo">la barbería de ejemplo</a>, o entra a su panel para ver la agenda y el resumen con datos de muestra.</p>
+        <a class="btn btn-dark" routerLink="/entrar" [queryParams]="{ demo: 1 }">Entrar al panel de ejemplo</a>
+      </div>
+    </section>
+
     <footer class="wrap foot muted small">Hecho en Colombia · Precios en pesos colombianos</footer>
   `,
   styles: `
@@ -68,6 +76,8 @@ import { RouterLink } from '@angular/router';
     .board-slots .taken { color: var(--ink-soft); text-decoration: line-through; background: var(--paper); }
     .how { padding-block: 24px 48px; }
     .steps { padding-left: 1.4em; display: grid; gap: 14px; max-width: 62ch; }
+    .demo { padding-bottom: 32px; }
+    .demo .panel { max-width: 640px; }
     .foot { padding-block: 24px 40px; }
     @media (min-width: 860px) {
       .hero { grid-template-columns: 1.15fr 1fr; padding-block: 64px 88px; }
