@@ -3,6 +3,11 @@
 Cada barbería se registra y obtiene su propia página de reservas (`/el-parche`). Sus clientes eligen servicio, barbero y hora desde el celular; el dueño ve la agenda del día, marca citas atendidas y consulta cuánto facturó. Varias barberías comparten la misma instalación sin ver nunca los datos de las demás.
 
 <p align="center">
+  <a href="docs/demo/barberhub_demo.mp4"><img src="docs/demo/barberhub_demo.jpg" alt="Ver el video demo de BarberHub (37 s)" width="800"></a>
+  <br><sub>▶ Video demo (37 s): el cliente reserva desde el celular y el dueño revisa su agenda y lo cobrado.</sub>
+</p>
+
+<p align="center">
   <img src="docs/screenshots/03-reserva-movil.png" alt="Reserva desde el celular" width="260">
   &nbsp;
   <img src="docs/screenshots/04-comprobante.png" alt="Comprobante de la cita" width="260">
