@@ -49,10 +49,10 @@ public final class AdminDtos {
     public record HoursBlock(@Min(1) @Max(7) int dayOfWeek, @NotNull LocalTime start, @NotNull LocalTime end) {
     }
 
-    public record HoursUpdate(@NotNull @Valid List<HoursBlock> blocks) {
+    public record HoursUpdate(@NotNull @Size(max = 50) @Valid List<@NotNull HoursBlock> blocks) {
     }
 
-    public record BarberAccountRequest(@NotBlank @Email String email,
+    public record BarberAccountRequest(@NotBlank @Email @Size(max = 150) String email,
                                        @NotBlank @Size(min = 8, max = 72) String password) {
     }
 

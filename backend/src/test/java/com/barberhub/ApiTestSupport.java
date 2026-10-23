@@ -25,7 +25,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @Import(TestInfra.class)
 @TestPropertySource(properties = {
         "barberhub.superadmin.email=root@barberhub.test",
-        "barberhub.superadmin.password=super-secret-123"
+        "barberhub.superadmin.password=super-secret-123",
+        "barberhub.jwt.secret=test-secret-solo-para-pruebas-0123456789abcdef",
+        "barberhub.rate-limit.enabled=false"
 })
 public abstract class ApiTestSupport {
 

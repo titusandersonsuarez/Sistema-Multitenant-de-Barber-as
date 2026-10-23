@@ -35,6 +35,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
                                  @Param("barberId") Long barberId);
 
     @Query("""
+            select count(a) from Appointment a
+            where a.customerPhone = :phone
+              and a.status = com.barberhub.booking.AppointmentStatus.BOOKED
+              and a.startAt > :now
+            """)
+    long countActiveByPhone(@Param("phone") String phone, @Param("now") LocalDateTime now);
+
+    @Query("""
             select a from Appointment a
             where a.startAt >= :from and a.startAt < :to
             """)

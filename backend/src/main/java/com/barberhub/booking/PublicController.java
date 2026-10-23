@@ -11,6 +11,8 @@ import com.barberhub.catalog.ServiceOfferingRepository;
 import com.barberhub.common.ApiException;
 import com.barberhub.tenancy.CurrentTenant;
 import com.barberhub.tenancy.Tenant;
+import com.barberhub.security.RateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -41,9 +44,12 @@ public class PublicController {
     private final BookingService booking;
     private final AppointmentRepository appointments;
     private final AppointmentViews views;
+    private final RateLimiter limiter;
 
     public PublicController(CurrentTenant currentTenant, ServiceOfferingRepository services, BarberRepository barbers,
-                            BookingService booking, AppointmentRepository appointments, AppointmentViews views) {
+                            BookingService booking, AppointmentRepository appointments, AppointmentViews views,
+                            RateLimiter limiter) {
+        this.limiter = limiter;
         this.currentTenant = currentTenant;
         this.services = services;
         this.barbers = barbers;
@@ -87,21 +93,24 @@ public class PublicController {
 
     @PostMapping("/appointments")
     @ResponseStatus(HttpStatus.CREATED)
-    public AppointmentView book(@PathVariable String slug, @Valid @RequestBody BookingRequest req) {
-        Appointment a = booking.book(req.barberId(), req.serviceId(), req.startAt(), req.customerName(), req.customerPhone());
+    public AppointmentView book(@PathVariable String slug, @Valid @RequestBody BookingRequest req, HttpServletRequest http) {
+        limiter.check("book:" + RateLimiter.clientIp(http), 10, Duration.ofHours(1));
+        Appointment a = booking.bookPublic(req.barberId(), req.serviceId(), req.startAt(), req.customerName(), req.customerPhone());
         return views.publicView(a);
     }
 
     @GetMapping("/appointments/{code}")
     @Transactional(readOnly = true)
-    public AppointmentView find(@PathVariable String slug, @PathVariable String code) {
+    public AppointmentView find(@PathVariable String slug, @PathVariable String code, HttpServletRequest http) {
+        limiter.check("code:" + RateLimiter.clientIp(http), 60, Duration.ofMinutes(10));
         return appointments.findByCode(code.toUpperCase())
                 .map(views::publicView)
                 .orElseThrow(() -> ApiException.notFound("No encontramos esa cita."));
     }
 
     @PostMapping("/appointments/{code}/cancel")
-    public AppointmentView cancel(@PathVariable String slug, @PathVariable String code) {
+    public AppointmentView cancel(@PathVariable String slug, @PathVariable String code, HttpServletRequest http) {
+        limiter.check("code:" + RateLimiter.clientIp(http), 60, Duration.ofMinutes(10));
         return views.publicView(booking.cancelByCustomer(code));
     }
 }

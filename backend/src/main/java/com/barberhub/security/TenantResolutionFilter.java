@@ -1,6 +1,10 @@
 package com.barberhub.security;
 
+import com.barberhub.auth.AppUser;
+import com.barberhub.auth.AppUserRepository;
 import com.barberhub.auth.Role;
+import com.barberhub.catalog.Barber;
+import com.barberhub.catalog.BarberRepository;
 import com.barberhub.tenancy.Tenant;
 import com.barberhub.tenancy.TenantContext;
 import com.barberhub.tenancy.TenantRepository;
@@ -35,10 +39,15 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
 
     private final JwtService jwt;
     private final TenantRepository tenants;
+    private final AppUserRepository users;
+    private final BarberRepository barbers;
 
-    public TenantResolutionFilter(JwtService jwt, TenantRepository tenants) {
+    public TenantResolutionFilter(JwtService jwt, TenantRepository tenants, AppUserRepository users,
+                                  BarberRepository barbers) {
         this.jwt = jwt;
         this.tenants = tenants;
+        this.users = users;
+        this.barbers = barbers;
     }
 
     @Override
@@ -57,12 +66,37 @@ public class TenantResolutionFilter extends OncePerRequestFilter {
                 }
                 TenantContext.set(tenant.get().getId());
             } else {
-                bearerToken(request).flatMap(jwt::parse).ifPresent(this::authenticate);
+                bearerToken(request).flatMap(jwt::parse).filter(this::stillValid).ifPresent(this::authenticate);
             }
             chain.doFilter(request, response);
         } finally {
             TenantContext.clear();
         }
+    }
+
+    /**
+     * El JWT dura horas: se revalida en cada petición que la barbería siga activa, que el usuario
+     * exista con el mismo rol y que, si es barbero, su ficha siga activa. Así desactivar una barbería
+     * o a un barbero corta el acceso de inmediato y no cuando expire el token.
+     */
+    private boolean stillValid(AuthPrincipal p) {
+        if (p.role() == Role.SUPERADMIN) {
+            return true;
+        }
+        if (tenants.findById(p.tenantId()).filter(Tenant::isActive).isEmpty()) {
+            return false;
+        }
+        return TenantContext.callAs(p.tenantId(), () -> {
+            AppUser user = users.findById(p.userId()).orElse(null);
+            if (user == null || user.getRole() != p.role()) {
+                return false;
+            }
+            if (p.role() == Role.BARBER) {
+                return user.getBarberId() != null && user.getBarberId().equals(p.barberId())
+                        && barbers.findById(user.getBarberId()).filter(Barber::isActive).isPresent();
+            }
+            return true;
+        });
     }
 
     private void authenticate(AuthPrincipal principal) {

@@ -109,6 +109,7 @@ Requisitos: Java 21, Node 22+ y PostgreSQL 16 con una base `barberhub`. El usuar
 ```bash
 # Backend
 cd backend
+export JWT_SECRET="$(openssl rand -base64 48)"   # obligatorio
 mvn spring-boot:run          # http://localhost:8080
 
 # Frontend (otra terminal)

@@ -4,6 +4,7 @@ import com.barberhub.common.ApiException;
 import com.barberhub.tenancy.Tenant;
 import com.barberhub.tenancy.TenantRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,7 +53,7 @@ public class SuperAdminController {
 
     @PatchMapping("/tenants/{id}")
     @Transactional
-    public TenantSummary setActive(@PathVariable Long id, @RequestBody ActiveUpdate req) {
+    public TenantSummary setActive(@PathVariable Long id, @Valid @RequestBody ActiveUpdate req) {
         Tenant t = tenants.findById(id).orElseThrow(() -> ApiException.notFound("Barbería no encontrada."));
         t.setActive(req.active());
         return new TenantSummary(t.getId(), t.getName(), t.getSlug(), t.isActive(), t.getCreatedAt(), 0);

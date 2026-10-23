@@ -45,6 +45,7 @@ public class AuthService {
     private final JwtService jwt;
     private final TransactionTemplate tx;
     private final BarberHubProperties props;
+    private final String dummyHash;
 
     public AuthService(TenantRepository tenants, AppUserRepository users, BarberRepository barbers,
                        ServiceOfferingRepository services, WorkingHoursRepository hours, PasswordEncoder encoder,
@@ -58,6 +59,7 @@ public class AuthService {
         this.jwt = jwt;
         this.tx = tx;
         this.props = props;
+        this.dummyHash = encoder.encode("relleno-para-tiempo-constante");
     }
 
     /**
@@ -67,6 +69,7 @@ public class AuthService {
      * "dentro" de ella para crear lo demás.
      */
     public AuthResponse register(RegisterRequest req) {
+        AuthDtos.requireBcryptLength(req.password());
         String slug = req.slug().toLowerCase(Locale.ROOT);
         if (RESERVED_SLUGS.contains(slug)) {
             throw ApiException.conflict("Esa dirección no está disponible.");
@@ -101,11 +104,20 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest req) {
         String slug = req.slug().toLowerCase(Locale.ROOT).trim();
-        Tenant tenant = tenants.findBySlug(slug).filter(Tenant::isActive)
-                .orElseThrow(AuthService::badCredentials);
+        Tenant tenant = tenants.findBySlug(slug).filter(Tenant::isActive).orElse(null);
+        if (tenant == null) {
+            encoder.matches(req.password(), dummyHash);
+            throw badCredentials();
+        }
         AppUser user = TenantContext.callAs(tenant.getId(), () -> tx.execute(s ->
-                users.findByEmailIgnoreCase(req.email().trim()).orElse(null)));
-        if (user == null || !encoder.matches(req.password(), user.getPasswordHash())) {
+                users.findByEmailIgnoreCase(req.email().trim())
+                        // Un barbero desactivado ya no puede entrar al panel.
+                        .filter(u -> u.getRole() != Role.BARBER
+                                || barbers.findById(u.getBarberId()).filter(Barber::isActive).isPresent())
+                        .orElse(null)));
+        boolean ok = AuthDtos.fitsBcrypt(req.password())
+                && encoder.matches(req.password(), user == null ? dummyHash : user.getPasswordHash());
+        if (user == null || !ok) {
             throw badCredentials();
         }
         return respond(user, tenant);

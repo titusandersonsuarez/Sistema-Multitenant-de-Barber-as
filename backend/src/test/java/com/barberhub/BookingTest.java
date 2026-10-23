@@ -172,6 +172,11 @@ class BookingTest extends ApiTestSupport {
         Response reserved = call(POST("/api/auth/register"), null, Map.of("shopName", "Otra", "slug", "admin",
                 "ownerName", "X", "email", "x@x.co", "password", "clave-segura-1"));
         assertThat(reserved.status()).isEqualTo(409);
+        Response longPwd = call(POST("/api/auth/register"), null, Map.of("shopName", "Otra", "slug", "pwd-larga-" + shop.slug(),
+                "ownerName", "X", "email", "x@x.co", "password", "ñ".repeat(40)));
+        assertThat(longPwd.status()).isEqualTo(400);
+        assertThat(call(PUT("/api/admin/barbers/" + shop.barberId() + "/hours"), shop.token(),
+                Map.of("blocks", java.util.Arrays.asList((Object) null))).status()).isEqualTo(400);
         Response bad = call(POST("/api/auth/register"), null, Map.of("shopName", "Otra", "slug", "Con Espacios",
                 "ownerName", "X", "email", "x@x.co", "password", "clave-segura-1"));
         assertThat(bad.status()).isEqualTo(400);

@@ -1,5 +1,7 @@
 package com.barberhub.security;
 
+import com.barberhub.auth.AppUserRepository;
+import com.barberhub.catalog.BarberRepository;
 import com.barberhub.tenancy.TenantRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +27,8 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtService jwt, TenantRepository tenants) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtService jwt, TenantRepository tenants,
+                                           AppUserRepository users, BarberRepository barbers) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(c -> {})
@@ -38,7 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/superadmin/**").hasRole("SUPERADMIN")
                         .requestMatchers("/api/admin/**").hasAnyRole("OWNER", "BARBER")
                         .anyRequest().denyAll())
-                .addFilterBefore(new TenantResolutionFilter(jwt, tenants), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new TenantResolutionFilter(jwt, tenants, users, barbers), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

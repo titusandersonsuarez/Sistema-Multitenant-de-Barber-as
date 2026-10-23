@@ -30,6 +30,8 @@ public class BookingService {
 
     private static final String CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
+    /** Citas futuras activas que un mismo celular puede tener a la vez en una barbería (reserva pública). */
+    private static final int MAX_ACTIVE_PER_PHONE = 3;
 
     private final BarberRepository barbers;
     private final ServiceOfferingRepository services;
@@ -64,6 +66,16 @@ public class BookingService {
             return List.of();
         }
         return computeSlots(barber.getId(), service.getDurationMinutes(), date, now);
+    }
+
+    /** Reserva desde la página pública: además limita cuántas citas activas puede acaparar un celular. */
+    @Transactional
+    public Appointment bookPublic(Long barberId, Long serviceId, LocalDateTime startAt, String customerName, String customerPhone) {
+        LocalDateTime now = LocalDateTime.now(clock.withZone(currentTenant.get().zone()));
+        if (appointments.countActiveByPhone(customerPhone.trim(), now) >= MAX_ACTIVE_PER_PHONE) {
+            throw ApiException.conflict("Ya tienes " + MAX_ACTIVE_PER_PHONE + " citas pendientes. Cancela alguna o llama a la barbería.");
+        }
+        return book(barberId, serviceId, startAt, customerName, customerPhone);
     }
 
     @Transactional

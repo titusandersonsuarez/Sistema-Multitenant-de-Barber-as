@@ -22,8 +22,11 @@ public class JwtService {
 
     public JwtService(BarberHubProperties props) {
         String secret = props.jwt().secret();
-        if (secret == null || secret.length() < 32) {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw new IllegalStateException("JWT_SECRET debe tener al menos 32 caracteres.");
+        }
+        if (secret.contains("change-me") || secret.contains("dev-only")) {
+            throw new IllegalStateException("JWT_SECRET usa un valor de ejemplo publicado; genera uno con: openssl rand -base64 48");
         }
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.ttl = Duration.ofHours(props.jwt().expirationHours());
@@ -49,11 +52,20 @@ public class JwtService {
         try {
             Claims c = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
             Number bid = c.get("bid", Number.class);
+            long tid = c.get("tid", Number.class).longValue();
+            Role role = Role.valueOf(c.get("role", String.class));
+            // tid 0 es el tenant ROOT (ve todas las barberías): solo válido para SUPERADMIN.
+            if (role == Role.SUPERADMIN ? tid != 0 : tid <= 0) {
+                return Optional.empty();
+            }
+            if (role == Role.BARBER && bid == null) {
+                return Optional.empty();
+            }
             return Optional.of(new AuthPrincipal(
                     Long.valueOf(c.getSubject()),
-                    c.get("tid", Number.class).longValue(),
+                    tid,
                     c.get("slug", String.class),
-                    Role.valueOf(c.get("role", String.class)),
+                    role,
                     bid == null ? null : bid.longValue(),
                     c.get("name", String.class)));
         } catch (JwtException | IllegalArgumentException | NullPointerException e) {

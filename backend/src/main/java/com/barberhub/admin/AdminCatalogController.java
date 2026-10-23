@@ -159,6 +159,7 @@ public class AdminCatalogController {
     @PostMapping("/barbers/{id}/account")
     @ResponseStatus(HttpStatus.CREATED)
     public BarberDto createAccount(@PathVariable Long id, @Valid @RequestBody BarberAccountRequest req) {
+        com.barberhub.auth.AuthDtos.requireBcryptLength(req.password());
         Barber b = barber(id);
         if (users.findByBarberId(id).isPresent()) {
             throw ApiException.conflict("Este barbero ya tiene cuenta.");

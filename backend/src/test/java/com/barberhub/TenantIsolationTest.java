@@ -112,6 +112,37 @@ class TenantIsolationTest extends ApiTestSupport {
     }
 
     @Test
+    void unTokenDeDuenoConTenantRootNoVeOtrasBarberias() throws Exception {
+        registerShop();
+        var key = io.jsonwebtoken.security.Keys.hmacShaKeyFor(
+                "test-secret-solo-para-pruebas-0123456789abcdef".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String forged = io.jsonwebtoken.Jwts.builder().subject("1").claim("tid", 0).claim("role", "OWNER")
+                .expiration(new java.util.Date(System.currentTimeMillis() + 60_000)).signWith(key).compact();
+        assertThat(call(GET("/api/admin/services"), forged, null).status()).isEqualTo(401);
+    }
+
+    @Test
+    void desactivarBarberiaOBarberoRevocaSusTokensVigentes() throws Exception {
+        Shop a = registerShop();
+        long other = call(POST("/api/admin/barbers"), a.token(), Map.of("name", "Temporal")).body().get("id").asLong();
+        call(POST("/api/admin/barbers/" + other + "/account"), a.token(),
+                Map.of("email", "temp@" + a.slug() + ".co", "password", "clave-temp-12"));
+        Map<String, String> creds = Map.of("slug", a.slug(), "email", "temp@" + a.slug() + ".co", "password", "clave-temp-12");
+        String barberToken = call(POST("/api/auth/login"), null, creds).body().get("token").asText();
+        assertThat(call(GET("/api/admin/appointments?from=2026-10-20"), barberToken, null).status()).isEqualTo(200);
+
+        call(PUT("/api/admin/barbers/" + other), a.token(), Map.of("name", "Temporal", "active", false));
+        assertThat(call(GET("/api/admin/appointments?from=2026-10-20"), barberToken, null).status()).isEqualTo(401);
+        assertThat(call(POST("/api/auth/login"), null, creds).status()).isEqualTo(401);
+
+        String sa = call(POST("/api/auth/superadmin"), null,
+                Map.of("email", "root@barberhub.test", "password", "super-secret-123")).body().get("token").asText();
+        long id = call(GET("/api/admin/shop"), a.token(), null).body().get("id").asLong();
+        call(PATCH("/api/superadmin/tenants/" + id), sa, Map.of("active", false));
+        assertThat(call(PUT("/api/admin/shop"), a.token(), Map.of("name", "Sigo aqui")).status()).isEqualTo(401);
+    }
+
+    @Test
     void laDocumentacionDeLaApiEsPublica() throws Exception {
         Response docs = call(GET("/v3/api-docs"), null, null);
         assertThat(docs.status()).isEqualTo(200);

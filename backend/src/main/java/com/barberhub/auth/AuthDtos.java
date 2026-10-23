@@ -10,6 +10,17 @@ public final class AuthDtos {
     private AuthDtos() {
     }
 
+    /** BCrypt solo usa los primeros 72 bytes y Spring lanza excepción si hay más: validar en bytes, no en caracteres. */
+    public static void requireBcryptLength(String password) {
+        if (password != null && password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw com.barberhub.common.ApiException.badRequest("La contraseña es demasiado larga (máximo 72 bytes).");
+        }
+    }
+
+    public static boolean fitsBcrypt(String password) {
+        return password != null && password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length <= 72;
+    }
+
     public record RegisterRequest(
             @NotBlank(message = "Escribe el nombre de la barbería.") @Size(max = 120) String shopName,
             @NotBlank(message = "Elige la dirección de tu página.")
@@ -22,12 +33,12 @@ public final class AuthDtos {
     }
 
     public record LoginRequest(
-            @NotBlank(message = "Indica la barbería.") String slug,
-            @NotBlank @Email String email,
-            @NotBlank String password) {
+            @NotBlank(message = "Indica la barbería.") @Size(max = 60) String slug,
+            @NotBlank @Email @Size(max = 150) String email,
+            @NotBlank @Size(max = 200) String password) {
     }
 
-    public record SuperAdminLoginRequest(@NotBlank String email, @NotBlank String password) {
+    public record SuperAdminLoginRequest(@NotBlank @Size(max = 150) String email, @NotBlank @Size(max = 200) String password) {
     }
 
     public record AuthResponse(String token, long expiresIn, UserView user) {

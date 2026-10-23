@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: barberhub
       POSTGRES_USER: barberhub
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-barberhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -22,11 +22,13 @@ services:
     environment:
       DATABASE_URL: jdbc:postgresql://db:5432/barberhub
       DATABASE_USER: barberhub
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-barberhub}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env (mínimo 32 caracteres)}
       SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
       SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
-      DEMO_ENABLED: ${DEMO_ENABLED:-true}
+      # La barbería demo tiene credenciales públicas (demo@barberhub.co / demo12345): actívala solo en la demo.
+      DEMO_ENABLED: ${DEMO_ENABLED:-false}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-demo12345}
       CORS_ALLOWED_ORIGINS: http://localhost:4200
     ports:
       - "8080:8080"

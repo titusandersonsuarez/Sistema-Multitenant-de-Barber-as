@@ -16,8 +16,12 @@ spring:
 
 server:
   port: ${PORT:8080}
+  # Detrás de nginx: toma la IP real de X-Forwarded-For solo si la conexión viene de un proxy interno.
+  forward-headers-strategy: native
   error:
-    include-message: always
+    # Nunca devolver mensajes de excepciones internas al cliente (clases, SQL, rutas).
+    include-message: never
+    include-stacktrace: never
 
 management:
   endpoints:
@@ -27,8 +31,9 @@ management:
 
 barberhub:
   jwt:
-    # En producción SIEMPRE definir JWT_SECRET (mínimo 32 caracteres).
-    secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me}
+    # Obligatorio: sin JWT_SECRET (mínimo 32 caracteres) la API no arranca. Nunca pongas un valor por defecto aquí:
+    # cualquiera que lea el repositorio podría firmar tokens de cualquier barbería.
+    secret: ${JWT_SECRET:}
     expiration-hours: ${JWT_EXPIRATION_HOURS:12}
   superadmin:
     email: ${SUPERADMIN_EMAIL:}
